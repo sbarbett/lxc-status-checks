@@ -1,0 +1,10 @@
+# Exclude this annoying macOS file
+.DS_Store
+
+# Exclude zones directories
+.idea/**
+
+# Exclude some file types
+*.sublime-project
+*.sublime-workspace
+*.bin
