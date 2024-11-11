@@ -26,10 +26,16 @@ send_discord_notification() {
     local webhook_url=$1
     local message=$2
     echo "$(date): Sending message: $message" >> $LOG_FILE
-    curl -s -H "Content-Type: application/json" \
-         -X POST \
-         -d "{\"content\": \"$message\"}" \
-         $webhook_url
+
+    # Run the curl command in the background and ignore errors
+    {
+        curl -s -H "Content-Type: application/json" \
+             -X POST \
+             -d "{\"content\": \"$message\"}" \
+             $webhook_url
+    } || {
+        echo "$(date): Failed to send message to Discord." >> $LOG_FILE
+    } &
 }
 
 # Check the event type and send appropriate notifications
@@ -43,9 +49,8 @@ elif [ "$event_type" = "pre-stop" ]; then
     message="\uD83D\uDD34 LXC container $container_id is stopping."
 else
     echo "$(date): Hook script exiting, event not handled." >> $LOG_FILE
-    # Exit if an unhandled event type is detected. You could add more events above if desired.
     exit 0
 fi
 
-# Send the notification
-send_discord_notification "${container_webhooks[$container_id]}" "$message"
+# Send the notification (non-blocking, ignore failures)
+send_discord_notification "${container_webhooks[$container_id]}" "$message" || true
