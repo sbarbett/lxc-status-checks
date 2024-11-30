@@ -85,3 +85,30 @@ You'll want to set up a `logrotate` job for `lxchook.log` as well.
 ```
 
 This will rotate logs weekly and store them for 4 weeks.
+
+## ZFS Check
+
+I have a ZFS pool mounted to a few of my containers, so I added a check to see if the pool is available and mounted when the container is starting. This is to prevent a race condition I was running in to.
+
+Edit the following values if you want to utilize this in your own startup script.
+
+```bash
+# Containers that need ZFS pool checks
+declare -a zfs_containers=("1xx" "1xx" "1xx")
+
+# Define ZFS pool name and mount point
+zfs_name="pool-name"
+zfs_mountpoint="/mnt/pool-mountpoint"
+```
+
+If you have no need to check whether a ZFS pool is mounted, you can just leave the containers array empty. If you have multiple pools, you will need to make some adjustments:
+
+1. Add new variables with the additional pool names and values (or if there are several, you might consider using an array)
+2. Modify the following code so it checks the additional arrays (again, if there are many you may want to loop through an array here)
+
+    ```bash
+    if is_in_array "$container_id" "${zfs_containers[@]}"; then
+        check_zfs_mount "$zfs_name" "$zfs_mountpoint"
+        check_zfs_mount "$second_zfs_name" "$second_zfs_mountpoint"
+    fi
+    ```
